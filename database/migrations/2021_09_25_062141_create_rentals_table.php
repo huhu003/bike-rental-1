@@ -27,6 +27,8 @@ class CreateRentalsTable extends Migration
             $table->integer('rentdays');
             $table->integer('rent_status');
             $table->string('remarks');
+            $table->string('pickup');
+
             $table->timestamps();
         });
     }

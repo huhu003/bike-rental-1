@@ -19,7 +19,7 @@ class UsersTableSeeder extends Seeder
             'lname' => 'edrlon',
             'email' => 'admin@admin.com',
             'role' => 'user',
-            'number' => '09560963490',
+            'number' => '+639560963490',
             'gender' => 'male',
             'city' => 'CDO',
             'street' => 'kauswagan',

@@ -63,7 +63,7 @@ Route::get('user/home',function(){
 
 //=========================================USERS=============================================
 Route::get('/home', 'App\Http\Controllers\HomeController@index')->name('home')->middleware('auth');
-Route::get('Uprofile',[HomeController::class,'profile']);
+
 Route::resource('bike_details',BikeDetailController::class);
 /*
 Route::get('allbikes',[BikeDetailController::class,'allbikes']);
@@ -76,16 +76,19 @@ Route::get('withoutdriver',[BikeDetailController::class,'withoutdriver']);
 Route::get('upload-bike',[BikeDetailController::class,'create']);
 Route::get('bike-listing',[BikeDetailController::class,'index']);
 Route::get('bikedetail/{bike_details}',[BikeDetailController::class,'show']);
-Route::get('myposts/{bike_details}',[BikeDetailController::class,'userpost']);
+//Route::get('myposts/{bike_details}',[BikeDetailController::class,'userpost']);
 Route::get('editbike/{BikeDetail}',[BikeDetailController::class,'edit']);
 Route::get('deletebike/{bike_details}',[BikeDetailController::class,'destroy']);
 Route::get('updatebike/{bike_details}',[BikeDetailController::class,'update']);
-//::get('booking/{bike_details}',[BookingController::class, 'booking']);
-Route::get('checkout/{bike_details}',[CheckoutController::class, 'checkout'])->name('checkout');
+Route::get('booking/{bike_details}',[BookingController::class, 'booking']);
+
+
+//KAILANGAN I CHANGE ANG ROUTE BOOKING FORM to PAYMENT PAGE
+Route::get('checkout',[CheckoutController::class, 'checkout'])->name('checkout');
 Route::post('checkout',[CheckoutController::class, 'afterpayment'])->name('checkout.credit-card');
 
-
-
+//USER PROFILE
+Route::get('account/{users}',[HomeController::class,'profile']);
 
 
 

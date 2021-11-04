@@ -9,7 +9,7 @@ use App\Models\Payment;
 use Stripe;
 use Illuminate\Support\Facades\DB;
 use Auth;
-
+use Session;
 use Illuminate\Support\Facades\Validator;
 
 class CheckoutController extends Controller
@@ -17,43 +17,19 @@ class CheckoutController extends Controller
     //
 
    
-    public function checkout(Request $request,$id)
+    public function checkout(Request $request)
     {   
         // Enter Your Stripe Secret
-        \Stripe\Stripe::setApiKey('sk_test_51J8iBHC5LDWr1mcMUlU5oZ5k3fV6wCITjFdnIFrZWaUesG6W9PgK5Ydi5KzrsxF3ATh97UVSFFk3ZTUo1BU39trp00LaYd0JwK');
+        \Stripe\Stripe::setApiKey('sk_test_51JeXT6E8vw61AZaQLjaHy3SUO9iv2tLPKyDC8vfIQKdB1Vg2ST3iQVR18l7uiIsYVll4QQzxCHO4rGyWTi0u90jO00MkekBmOK');
     
 
         
       
     //Para sa price
+    
+   
 
-    $bike_details = BikeDetail::where('id', $id)->get();
-    $amount =$request->input('bikeprice');
-    foreach($bike_details as $d){
-        $amount= $d['bikeprice'];
-    }
-   /* $total = $request->input('total');
-    $amount = $request->$total;
-*/
-    $amount*=100;
-        $payment_intent = \Stripe\PaymentIntent::create([
-			'amount' => $amount,
-			'currency' => 'PHP',
-			'description' => 'Payment From Bike Rental',
-			'payment_method_types' => ['card'],
-		]);
-        //FOR BIKES
-		$intent = $payment_intent->client_secret;
-		return view('user.checkout.credit-card',compact('intent','bike_details'));
-    }
-
-    public function afterPayment(Request $request)
-    {
-        
-      // return $request->input();
-    $bike_id = $request->input('bike_id');
- 
-    $query1= DB::table('rentals')->insertGetId([
+    $bike= DB::table('rentals')->insertGetId([
         'user_id'=>$request->input('user_id'),
         'bike_id'=>$request->input('bike_id'),
         'rent_start_date'=>$request->input('rent_start_date'),
@@ -66,58 +42,58 @@ class CheckoutController extends Controller
         'remarks'=>$request->input('remarks'), 
        
 ]);
-$rent = $query1;
-    //KULANG INSERT PAYMENT
-       // echo 'Payment Has been Received';
-    $payments = DB::table('payments')->insertGetId([
-        'user_id'=>$request->input('user_id'),
-        'rental_id'=>$rent,
-        'payment_type'=>$request->input('payment_type'),
-        'paid_by'=>$request->input('paid_by'),
-        'transfee'=>$request->input('transfee'),
-        'payment_date' => now(),
-        'remarks' => 'pending'
+$bike = DB::getPdo()->lastInsertId();
+$latest = DB::table('rentals')
+->join('bike_details', 'rentals.bike_id', '=', 'bike_details.id')
+->select('bike_details.*', 'rentals.*')
+->where('rentals.rental_id','=',$bike)
+->get();
+    $transfee =$request->input('transfee');
+    $amount =$request->input('total_amount');
+   
+   /* $total = $request->input('total');
+    $amount = $request->$total;
+*/
+        $amount*=100;
+        $payment_intent = \Stripe\PaymentIntent::create([
+			'amount' => $amount,
+			'currency' => 'PHP',
+			'description' => 'Payment From Bike Rental',
+			'payment_method_types' => ['card'],
+		]);
+        //FOR BIKES
+		$intent = $payment_intent->client_secret;
+		return view('user.checkout.credit-card',compact('intent','latest','transfee'));
+    }
+
+    
+
+    public function afterPayment(Request $request)
+    {
+
+       
+      
+            
+        $payments = DB::table('payments')->insertGetId([
+            'user_id'=>$request->input('user_id'),
+            'rental_id'=>$request->input('rental_id'),
+            'payment_type'=>$request->input('payment_type'),
+            'paid_by'=>$request->input('paid_by'),
+            'remarks'=>$request->input('remarks'),
+            'transfee'=>$request->input('transfee'),
         
-]);
+    ]);
+    $payments = DB::getPdo()->lastInsertId();
+    $pay = $payments;
+    
 
-$pay = $payments;
-
-$rental = Rental::select('*')
-    ->join('bike_details', 'rentals.bike_id', '=', 'bike_details.id')
-    ->where('rental_id', '=', $rent)
-    ->get();
-
-$pay = Payment::select('*')
-    ->where('payment_id', '=', $pay)
-    ->get();
-
-        if($request->IsMethod('post')){
-        $to = request()->input('personnumber');
-        $from = getenv("TWILIO_FROM");
-        $message = request()->input('message');
-        //open connection
-
-        $ch = curl_init();
-
-        //set the url, number of POST vars, POST data
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-        curl_setopt($ch, CURLOPT_USERPWD, getenv("TWILIO_SID").':'.getenv("TWILIO_TOKEN"));
-        curl_setopt($ch, CURLOPT_HTTPAUTH, CURLAUTH_ANY);
-        curl_setopt($ch, CURLOPT_URL, sprintf('https://api.twilio.com/2010-04-01/Accounts/'.getenv("TWILIO_SID").'/Messages.json', getenv("TWILIO_SID")));
-        curl_setopt($ch, CURLOPT_POST, 3);
-        curl_setopt($ch, CURLOPT_POSTFIELDS, 'To='.$to.'&From='.$from.'&Body='.$message);
-
-        // execute post
-        $result = curl_exec($ch);
-        $result = json_decode($result);
-
-        // close connection
-        curl_close($ch);
-        //Sending message ends here
-        //number 09560963490 is not a valid phone kailangan og +63
-        //return[$result];
-        }
-return view('user.receipt',compact('rental','pay'));
+            $pay = Payment::select('*')
+                ->where('payment_id', '=', $pay)
+                ->get();
+            $rental = Rental::select('*')
+                ->where('rental_id', '=', $request->input('rental_id'))
+                ->get();
+    return view('user.receipt',compact('rental','pay'));
     }
 }
 

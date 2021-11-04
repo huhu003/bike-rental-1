@@ -1,6 +1,11 @@
 <?php
 
+
 namespace App\Http\Controllers;
+use App\Models\BikeDetail;
+use Illuminate\Http\Request;
+use App\Models\User;
+
 
 class HomeController extends Controller
 {
@@ -24,9 +29,15 @@ class HomeController extends Controller
         return view('user.home');
     }
 
-    public function profile()
+
+
+  
+    public function profile($bike_id)
     {
-    return view ('user.Uprofile');
+        $BikeDetail = BikeDetail::select('*')
+        ->where('user_id', '=', $bike_id)
+        ->get();
+    return view ('user/account',compact('BikeDetail'));
     }
   
 }

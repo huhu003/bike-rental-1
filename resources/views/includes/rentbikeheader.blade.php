@@ -67,11 +67,11 @@
           <li><a href="my-testimonials.php">My Testimonial</a></li>
             <li><a href="logout.php">Sign Out</a></li> -->
 
-                                <li><a href="../Uprofile">Profile Settings</a>
+                                <li><a href="../account/{{Auth::user()->id}}">Account</a>
                                 </li>
 
-                                <li><a href="../myposts/{{Auth::user()->id}}" >My Posts</a></li>
-
+                              <!--  <li><a href="../myposts/{{Auth::user()->id}}" >My Posts</a></li>
+-->
                                 <li><a onclick="event.preventDefault();
              document.getElementById('logout-form').submit();" href="{{ route('logout') }}" data-toggle="modal"
                                         data-dismiss="modal">Sign Out</a></li>
@@ -96,7 +96,7 @@
                     <li><a href="../about-us">About Us</a></li>
                     <li><a href="../bike-listing">Bike Listing</a>
                     <li><a href="../contact">Contact Us</a></li>
-                    <li><a href="../upload-bike">Upload Bike</a></li>
+                    <li><a href="#">Ads</a></li>
 
                 </ul>
             </div>
